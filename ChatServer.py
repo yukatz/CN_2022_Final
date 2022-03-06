@@ -7,7 +7,6 @@ class Server:
         self.host = ""
         self.port = 50000
         self.clients_list = {}
-        self.socket_list = []
 
     def connect(self):
         serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -18,8 +17,14 @@ class Server:
         while True:
             serv_sock.listen(1)
             client, address = serv_sock.accept()
-            self.socket_list.append(address)
-            self.start_listen(client)
+
+            if client:
+                 client.send('NAME'.encode())
+                 client_name = client.recv(1024).decode()
+                 self.clients_list[address] = client_name
+                 print(f"{self.clients_list[address]} connected")
+                 # self.broadcast(f"{self.clients_list[address]} connected")
+
 
     def start_listen(self,client):
         client_thread = threading.Thread(target=self.listen, args=(client,))
@@ -32,8 +37,13 @@ class Server:
                 if message:
                     print(f"{client} says: {message}")
 
-    def send_all(self):
-        pass
+    # def broadcast(self, message):
+    #     for key in self.clients_list:
+    #         key.send(message)
+
+
+
+
 
 
 
