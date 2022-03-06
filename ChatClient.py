@@ -16,23 +16,32 @@ class Client:
             """Open TCP socket"""
             self.client_sock.connect((self.host, self.port))
             print("Connected")
-            # thread_send = threading.Thread(target=self.send, args=(msg,name))
+            self.name = input("Enter your name: ")
+
+            thread_send = threading.Thread(target=self.send, args = (client,))
             thread_receving = threading.Thread(target=self.receiving)
-            # thread_send.start()
+            thread_send.start()
             thread_receving.start()
 
-    def send(self, msg, name):
+    def send(self, client):
         while True:
+            msg = input()
             if msg:
-                msg_from = f"{name}: {msg}"
-                self.client_sock.send(msg_from.encode())
+                msg_from = f": {msg}"
+                client.send(msg_from.encode())
+
 
 
     def receiving(self):
         while True:
             msg = self.client_sock.recv(1024).decode()
+            # print(msg)
             if msg == 'NAME':
-                self.client_sock.send(self.name)
+                self.client_sock.send(self.name.encode())
+
+
+            # if msg == 'NAME':
+            #     self.client_sock.send(self.name)
 
 
 
