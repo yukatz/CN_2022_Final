@@ -23,22 +23,19 @@ class Client:
                   f" To send a message to one person, type * and then his nickname that you can find in clients list\n"
                   f" To download a file, type ""file"" and the the name include .type \n"
                   f" To quit, type QUIT ")
-            thread_send = threading.Thread(target=self.send())
-            thread_receiving = threading.Thread(target=self.receiving)
+            thread_send = threading.Thread(target=self.send, args=(self.client_sock,))
+            thread_receiving = threading.Thread(target=self.receiving, args=(self.client_sock,))
             thread_send.start()
             thread_receiving.start()
 
-    def send(self):
+    def send(self, client):
         while True:
             msg = input()
-            self.client_sock.send(msg.encode())
+            client.send(msg.encode())
 
-    def receiving(self):
-        print("msg")
-
+    def receiving(self, client):
         while True:
-            msg = self.client_sock.recv(1024).decode()
-            print("msg")
+            msg = client.recv(1024).decode()
             if msg == 'NAME':
                 self.client_sock.send(self.name.encode())
             else:
@@ -50,8 +47,8 @@ class Client:
 
 
 if __name__ == '__main__':
-    client = Client()
-    client.connect()
+    cli = Client()
+    cli.connect()
 
 
 
