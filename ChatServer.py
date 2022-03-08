@@ -1,6 +1,7 @@
 import socket
 import threading
 import os
+from msilib.schema import File
 
 
 class Server:
@@ -9,6 +10,9 @@ class Server:
         self.port = 50000
         self.clients_list = {}
         self.files = os.listdir('.')
+        self.filepack1 = {}
+        self.filepack2 = {}
+
 
     def connect(self):
         serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,59 +27,65 @@ class Server:
             client_name = client.recv(1024).decode()
             print(f"{client_name} connected")
             self.clients_list[client] = client_name
-            self.broadcast(f"{client_name} connected")
+            self.broadcast(f"{client_name} connected",client)
             self.start_listen(client)
 
-
-    def start_listen(self,client):
+    def start_listen(self, client):
         client_thread = threading.Thread(target=self.listen, args=(client,))
         client_thread.start()
 
-
     def listen(self, client):
         while True:
-           msg = client.recv(1024).decode()
-           split_msg = msg.split()  # slit the messege a *name of destination
-           if msg:
-               if msg[0] == '*':
-                   priv_msg = split_msg[1:]  # without a *name of destination
-                   dest = split_msg[0][1:]
-                   if dest in self.clients_list:
-                      self.privat_conf(priv_msg, self.clients_list[client], dest)
-                   else:
-                       print(f"{dest} does't exist or disconnected")
+            msg = client.recv(1024).decode()
+            split_msg = msg.split()  # split the messege a *name of destination
+            print(split_msg)
+            if msg:
+                if msg[0] == '*':
+                    priv_msg = split_msg[1:]  # without a *name of destination
+                    priv_msg = ','.join(priv_msg)
+                    dest = split_msg[0][1:]
+                    if dest in self.clients_list.values():
+                        self.privat_conf(f"{self.clients_list[client]} says: {priv_msg}", dest)
+                    else:
+                        print(f"{dest} does't exist or disconnected")
 
-               elif msg[0] == '#':
-                   file_name = split_msg[0][1:]  # file name (without #)
-                   if file_name in self.files:
-                       print(f"{file_name} start downloading")
-                   else:
-                       print("This file does't exist")
+                elif msg[0] == '#':
+                    file_name = split_msg[0][1:]  # file name (without #)
+                    if file_name in self.files:
+                        udp_con = threading.Thread(target=self.udp_conn, args=(file_name,))
+                        udp_con.start()
+
+                        print(f"{file_name} start downloading")
+                    else:
+                        print("This file does't exist")
 
 
-               elif msg=='QUIT':
-                   print(f"{self.clients_list[client]} has been disconnected : ")
-                   self.clients_list.pop(client)
+                elif msg == 'QUIT':
+                    print(f"{self.clients_list[client]} has been disconnected : ")
+                    self.clients_list.pop(client)
 
-               else:
-                   msg_from = f"{self.clients_list[client]} says: {msg}"
-                   print(msg_from)
-                   self.broadcast(msg_from)
+                else:
+                    msg_from = f"{self.clients_list[client]} says: {msg}"
+                    print(msg_from)
+                    self.broadcast(msg_from,client)
 
-    def broadcast(self, message):
-        print("br")
+    def broadcast(self, message, client):
         for key in self.clients_list.keys():
-            print(self.clients_list[key])
-            print(message)
-            key.send(message.encode())
+            if key != client:
+                print(self.clients_list[key])
+                print(message)
+                key.send(message.encode())
 
-    def privat_conf(self, message, src, dest):
-        for key in self.clients_list.keys():
-            key.send(message)
+    def privat_conf(self, message, dest):
+        for key, val in self.clients_list.items():
+            if val == dest:
+                key.send(message.encode())
+
+    def udp_conn(self, file):
+        serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        serverSocket.bind((self.host, self.port))
 
 
 if __name__ == '__main__':
     server = Server()
     server.connect()
-
-

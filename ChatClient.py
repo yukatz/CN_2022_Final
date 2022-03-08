@@ -1,6 +1,7 @@
 import socket
 import threading
 
+import GUI
 
 class Client:
     def __init__(self):
@@ -15,6 +16,7 @@ class Client:
             self.client_sock.connect((self.host, self.port))
             print("Connected")
             self.name = input("Enter your name: ")
+
             msg = self.client_sock.recv(1024).decode()
             if msg=='NAME':
                 self.client_sock.send(self.name.encode())
