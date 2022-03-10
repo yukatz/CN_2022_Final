@@ -1,7 +1,6 @@
 import socket
 import threading
 
-import GUI
 
 class Client:
     def __init__(self):
@@ -40,8 +39,16 @@ class Client:
             msg = client.recv(1024).decode()
             if msg == 'NAME':
                 self.client_sock.send(self.name.encode())
-            else:
-                print(msg)
+            if msg[0]=='&':
+                msgsplt = msg.split()
+                port = msgsplt[8][:5]
+                host = msgsplt[7][8:15]
+                len = msgsplt[1][0:]
+                clientSocketUdp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                clientSocketUdp.sendto("im here".encode(),("localhost",int(port)))
+
+                print(clientSocketUdp.recv(1024).decode())
+
 
 
 

@@ -52,12 +52,15 @@ class Server:
                 elif msg[0] == '#':
                     file_name = split_msg[0][1:]  # file name (without #)
                     if file_name in self.files:
-                        udp_con = threading.Thread(target=self.udp_conn, args=(file_name,))
+                        udp_con = threading.Thread(target=self.udp_conn, args=(file_name,client,))
                         udp_con.start()
-
-                        print(f"{file_name} start downloading")
+                        print("Udp thread started")
+                        self.file_cut(file_name)
+                        print(f"{self.filepack1[0]}")
+                        udp_con.send(f"{file_name} start downloading".encode())
                     else:
-                        print("This file does't exist")
+                        print(f"{self.clients_list[client]} tried to download not existing file")
+                        client.send("This file doesn't exist".encode())
 
 
                 elif msg == 'QUIT':
@@ -81,9 +84,29 @@ class Server:
             if val == dest:
                 key.send(message.encode())
 
-    def udp_conn(self, file):
+    def udp_conn(self, file,client):
         serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         serverSocket.bind((self.host, self.port))
+        udpCli, address = serverSocket.accept()
+        if serverSocket:
+            client.send(f"& {13} {serverSocket}".encode())
+            print("udp up")
+        while True:
+            msg = serverSocket.recv(1024).decode()
+            if msg=='im here':
+                udpCli.send(f"{file} start download".encode())
+
+    def file_cut(self, file_name):
+        file = open(file_name, 'rb')
+        packet = file.read(1024)
+        index = 0
+        while packet:
+            self.filepack1[index] = packet
+            index += 1
+            packet = file.read(1024)
+        file.close()
+
+
 
 
 if __name__ == '__main__':

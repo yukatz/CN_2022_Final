@@ -2,14 +2,13 @@
 import tkinter
 from tkinter import *
 
-
+from ChatClient import Client
+import ChatClient
 
 class Gui:
     """inits the client, open login window. Must start the server before"""
     def __init__(self):
-        # self.client = Client()
-        # self.client.connect()
-        self.name = None
+
         #
         # """Login Window, calls the main window by "login" button via lambda"""
         self.Window = Tk()
@@ -31,6 +30,10 @@ class Gui:
         # self.client.name = self.name
         self.login.grid(column=1, row=3, sticky=tkinter.E, padx=5, pady=5)
         self.Window.mainloop()
+
+        self.client = Client(self.entryName.get())
+        self.client.connect()
+        self.name = None
 
     def main_window(self, name):
         """main chat window, first closes the login window"""
@@ -59,7 +62,8 @@ class Gui:
         self.entryMsg.place(relwidth=0.85, relheight=0.04, rely=0.008, relx=0.011)
         self.entryMsg.focus()
 
-        self.buttonMsg = Button(self.labelBottom, text="Send", width=4, bg="white", font=("Courier", 16, "bold"))
+        self.buttonMsg = Button(self.labelBottom, text="Send", width=4, bg="white", font=("Courier", 16, "bold"),
+                                command = lambda: self.client.send(self.entryMsg))
         self.buttonMsg.place(relx=0.87, rely=0.008, relheight=0.04, relwidth=0.13)
 
 
@@ -81,5 +85,4 @@ class Gui:
 
 if __name__ == '__main__':
     g = Gui()
-    g.main_window("yulia")
 
