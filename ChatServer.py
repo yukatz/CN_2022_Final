@@ -110,10 +110,6 @@ class Server:
                     pack = self.filepack1[key]
                     serverSocket.sendto(f"key {pack}".encode(), clientAddress)
 
-        # if serverSocket:
-        #     print("udp up")
-        # while True:
-        #     msg = serverSocket.recv(1024).decode()
 
 
 
