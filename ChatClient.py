@@ -18,17 +18,15 @@ class Client:
             self.client_sock.connect((self.host, self.port))
             print("Connected")
             self.name = input("Enter your name: ")
-
             msg = self.client_sock.recv(1024).decode()
-            if msg=='NAME':
+            if msg == 'NAME':
                 self.client_sock.send(self.name.encode())
             print(f"Hello {self.name} and welcome to our chat\n"
                   f" To send a message to all participants, type and send\n"
                   f" To send a message to one person, type * and then his nickname that you can find in clients list\n"
                   f" To download a file, type # and the the name include .type \n"
                   f" To see connected clients, type ""Clients list""\n"
-                  f" To see files you can download, type ""Files list"""
-
+                  f" To see files you can download, type ""Files list""\n"
                   f" To quit, type QUIT ")
             thread_send = threading.Thread(target=self.send, args=(self.client_sock,))
             thread_receiving = threading.Thread(target=self.receiving, args=(self.client_sock,))

@@ -13,7 +13,7 @@ class Server:
         self.clients_list = {}
         self.files = os.listdir('.')
         self.filepack1 = {}
-        self.filepack2 = {}
+        self.filepack2 = {} #created this to divide file to 2 dict, fo stop end continue option
 
 
     def connect(self):
@@ -22,17 +22,17 @@ class Server:
         serv_sock.bind((self.host, self.port))
         print('The Server is Up')
 
-        while True:
+        while True: #listen and accept more then one client
             serv_sock.listen(1)
             client, address = serv_sock.accept()
-            client.send('NAME'.encode())
+            client.send('NAME'.encode()) #asking for name
             client_name = client.recv(1024).decode()
             print(f"{client_name} connected")
-            self.clients_list[client] = client_name
-            self.broadcast(f"{client_name} connected",client)
+            self.clients_list[client] = client_name #enter new client to clients list
+            self.broadcast(f"{client_name} connected", client) #tells everybody about new client
             self.start_listen(client)
 
-    def start_listen(self, client):
+    def start_listen(self, client):#starting 1'st thred for listening
         client_thread = threading.Thread(target=self.listen, args=(client,))
         client_thread.start()
 
@@ -40,11 +40,10 @@ class Server:
         while True:
             msg = client.recv(1024).decode()
             split_msg = msg.split()  # split the messege a *name of destination
-            print(split_msg)
             if msg:
                 if msg[0] == '*':
                     priv_msg = split_msg[1:]  # without a *name of destination
-                    priv_msg = ','.join(priv_msg)
+                    priv_msg = ' '.join(priv_msg)
                     dest = split_msg[0][1:]
                     if dest in self.clients_list.values():
                         self.privat_conf(f"{self.clients_list[client]} says: {priv_msg}", dest)
@@ -67,9 +66,10 @@ class Server:
                         print(f"{self.clients_list[client]} tried to download not existing file")
                         client.send("This file doesn't exist".encode())
                 elif msg == 'Files list':
-                    pass
+                    client.send(f"files in this server:{' '.join(self.files).removeprefix('.git .idea ChatClient.py ChatServer.py GUI.py')}".encode())
+
                 elif msg == 'Clients list':
-                    client.send(self.clients_list.values())
+                    client.send(f"connected clients:{' '.join(self.clients_list.values()).removeprefix(self.clients_list[client])}".encode())
                 elif msg == 'QUIT':
                     print(f"{self.clients_list[client]} has been disconnected : ")
                     self.clients_list.pop(client)
