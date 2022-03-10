@@ -2,12 +2,14 @@ import socket
 import threading
 import os
 from msilib.schema import File
+import random
 
 
 class Server:
     def __init__(self):
         self.host = ""
         self.port = 50000
+        self.portUDP = random.randint(51000,60000)
         self.clients_list = {}
         self.files = os.listdir('.')
         self.filepack1 = {}
@@ -52,12 +54,15 @@ class Server:
                 elif msg[0] == '#':
                     file_name = split_msg[0][1:]  # file name (without #)
                     if file_name in self.files:
-                        udp_con = threading.Thread(target=self.udp_conn, args=(file_name,client,))
-                        udp_con.start()
-                        print("Udp thread started")
+                        client.send("&".encode())
+                        self.portUDP = random.randint(50000, 60000)
+                        # self.portUDP = 57000
+                        client.send(str(self.portUDP).encode())
                         self.file_cut(file_name)
-                        print(f"{self.filepack1[0]}")
-                        udp_con.send(f"{file_name} start downloading".encode())
+                        client.send(str(len(self.filepack1)).encode())
+                        udp_con = threading.Thread(target=self.udp_conn, args=(client,))
+                        udp_con.start()
+
                     else:
                         print(f"{self.clients_list[client]} tried to download not existing file")
                         client.send("This file doesn't exist".encode())
@@ -84,17 +89,31 @@ class Server:
             if val == dest:
                 key.send(message.encode())
 
-    def udp_conn(self, file,client):
+    def udp_conn(self, client):
+        print("udp connection started\n")
         serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        serverSocket.bind((self.host, self.port))
-        udpCli, address = serverSocket.accept()
+        serverSocket.bind(('', self.portUDP))
+        print(self.portUDP)
+        while not serverSocket:
+            self.portUDP = random.randint(50000, 60000)
+            client.send(str(self.portUDP).encode())
+            serverSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            serverSocket.bind(('', self.portUDP))
+
         if serverSocket:
-            client.send(f"& {13} {serverSocket}".encode())
-            print("udp up")
-        while True:
-            msg = serverSocket.recv(1024).decode()
-            if msg=='im here':
-                udpCli.send(f"{file} start download".encode())
+            message, clientAddress = serverSocket.recvfrom(2048)
+            serverSocket.sendto("lets play".encode(), clientAddress)
+            while serverSocket:
+                for key in self.filepack1.keys():
+                    pack = self.filepack1[key]
+                    serverSocket.sendto(pack)
+
+        # if serverSocket:
+        #     print("udp up")
+        # while True:
+        #     msg = serverSocket.recv(1024).decode()
+
+
 
     def file_cut(self, file_name):
         file = open(file_name, 'rb')

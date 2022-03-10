@@ -8,7 +8,9 @@ import ChatClient
 class Gui:
     """inits the client, open login window. Must start the server before"""
     def __init__(self):
-
+        self.client = Client()
+        self.client.connect()
+        self.name = None
         #
         # """Login Window, calls the main window by "login" button via lambda"""
         self.Window = Tk()
@@ -31,9 +33,7 @@ class Gui:
         self.login.grid(column=1, row=3, sticky=tkinter.E, padx=5, pady=5)
         self.Window.mainloop()
 
-        self.client = Client(self.entryName.get())
-        self.client.connect()
-        self.name = None
+
 
     def main_window(self, name):
         """main chat window, first closes the login window"""
@@ -52,8 +52,9 @@ class Gui:
         self.line = Label(self.Window, width=450, bg="#ABB2B9")
         self.line.place(relwidth=1, rely=0.07, relheight=0.012)
 
-        self.textCons = Text(self.Window, width=20, height=2, bg="white", fg="#EAECEE", padx=5, pady=5)
+        self.textCons = Text(self.Window, width=20, height=2, bg="black", fg="#EAECEE", padx=5, pady=5)
         self.textCons.place(relheight=0.860, relwidth=1, rely=0.08) #text back
+
 
         self.labelBottom = Label(self.Window, bg="pink", height=80) #down back
         self.labelBottom.place(relwidth=1, rely=0.890)

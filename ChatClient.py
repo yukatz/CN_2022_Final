@@ -1,3 +1,4 @@
+import random
 import socket
 import threading
 
@@ -7,6 +8,7 @@ class Client:
         self.host = "localhost"
         self.port = 50000
         self.name = None
+        self.portUDP = None
         """Open TCP socket"""
         self.client_sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
@@ -37,22 +39,34 @@ class Client:
     def receiving(self, client):
         while True:
             msg = client.recv(1024).decode()
+            msg_split = msg.split(" ")
             if msg == 'NAME':
                 self.client_sock.send(self.name.encode())
             if msg[0]=='&':
-                msgsplt = msg.split()
-                port = msgsplt[8][:5]
-                host = msgsplt[7][8:15]
-                len = msgsplt[1][0:]
-                clientSocketUdp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                clientSocketUdp.sendto("im here".encode(),("localhost",int(port)))
-
-                print(clientSocketUdp.recv(1024).decode())
+                self.portUDP = client.recv(1024).decode()
+                len = client.recv(1024).decode()
+                udpSocket = threading.Thread(target=self.udp_client_connection)
+                udpSocket.start()
+            if msg_split[0] != self.name:
+                print(msg)
 
 
+    def recv_file(self, clientSocketUdp):
+
+        modifiedMessage, serverAddress = clientSocketUdp.recvfrom(2048)
 
 
 
+
+
+    def udp_client_connection(self):
+            clientSocketUdp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            clientSocketUdp.sendto("Im here".encode(), ('localhost', int(self.portUDP)))
+            if clientSocketUdp:
+                print("opened")
+                modifiedMessage, serverAddress = clientSocketUdp.recvfrom(2048)
+                print(modifiedMessage.decode())
+            self.recv_file(clientSocketUdp)
 
 
 if __name__ == '__main__':
