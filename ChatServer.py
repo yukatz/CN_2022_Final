@@ -8,7 +8,7 @@ import random
 class Server:
     def __init__(self):
         self.host = ""
-        self.port = 50000
+        self.port = 52000
         self.portUDP = random.randint(51000,60000)
         self.clients_list = {}
         self.files = os.listdir('.')
@@ -66,8 +66,10 @@ class Server:
                     else:
                         print(f"{self.clients_list[client]} tried to download not existing file")
                         client.send("This file doesn't exist".encode())
-
-
+                elif msg == 'Files list':
+                    pass
+                elif msg == 'Clients list':
+                    client.send(self.clients_list.values())
                 elif msg == 'QUIT':
                     print(f"{self.clients_list[client]} has been disconnected : ")
                     self.clients_list.pop(client)
@@ -106,7 +108,7 @@ class Server:
             while serverSocket:
                 for key in self.filepack1.keys():
                     pack = self.filepack1[key]
-                    serverSocket.sendto(pack)
+                    serverSocket.sendto(f"key {pack}".encode(), clientAddress)
 
         # if serverSocket:
         #     print("udp up")

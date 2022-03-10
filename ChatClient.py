@@ -6,9 +6,10 @@ import threading
 class Client:
     def __init__(self):
         self.host = "localhost"
-        self.port = 50000
+        self.port = 52000
         self.name = None
         self.portUDP = None
+        self.file_dict = {}
         """Open TCP socket"""
         self.client_sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
@@ -24,7 +25,10 @@ class Client:
             print(f"Hello {self.name} and welcome to our chat\n"
                   f" To send a message to all participants, type and send\n"
                   f" To send a message to one person, type * and then his nickname that you can find in clients list\n"
-                  f" To download a file, type ""file"" and the the name include .type \n"
+                  f" To download a file, type # and the the name include .type \n"
+                  f" To see connected clients, type ""Clients list""\n"
+                  f" To see files you can download, type ""Files list"""
+
                   f" To quit, type QUIT ")
             thread_send = threading.Thread(target=self.send, args=(self.client_sock,))
             thread_receiving = threading.Thread(target=self.receiving, args=(self.client_sock,))
@@ -51,13 +55,6 @@ class Client:
                 print(msg)
 
 
-    def recv_file(self, clientSocketUdp):
-
-        modifiedMessage, serverAddress = clientSocketUdp.recvfrom(2048)
-
-
-
-
 
     def udp_client_connection(self):
             clientSocketUdp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -65,8 +62,11 @@ class Client:
             if clientSocketUdp:
                 print("opened")
                 modifiedMessage, serverAddress = clientSocketUdp.recvfrom(2048)
-                print(modifiedMessage.decode())
-            self.recv_file(clientSocketUdp)
+                if modifiedMessage=='lets play':
+                    while clientSocketUdp:
+                        modifiedMessage, serverAddress = clientSocketUdp.recvfrom(2048)
+                        print(modifiedMessage)
+
 
 
 if __name__ == '__main__':
